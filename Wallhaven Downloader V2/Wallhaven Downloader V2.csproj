@@ -75,6 +75,7 @@
       <DependentUpon>AuthForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Collection.cs" />
+    <Compile Include="HttpHelper.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ThreadParams.cs" />
     <Compile Include="UserInput.cs">

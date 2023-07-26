@@ -85,7 +85,7 @@ namespace Wallhaven_Downloader_V2 {
             }
         }
 
-        public override string ToString() {
+        public  string ToURL() {
             string result = $"categories={categories}&purity={purity}&sorting={sorting}&order={order}&topRange={topRange}&page={page}";
             if (q != "") {
                 result += $"&q={q}";

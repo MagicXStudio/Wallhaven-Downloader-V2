@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Wallhaven_Downloader_V2 {
-    class Image {
+    public class Image {
         public string id;
         public string url;
         public string filename;
