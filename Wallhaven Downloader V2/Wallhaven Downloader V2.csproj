@@ -77,6 +77,8 @@
     <Compile Include="Collection.cs" />
     <Compile Include="HttpHelper.cs" />
     <Compile Include="Image.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="SetUnlockInterfaceCallback.cs" />
     <Compile Include="ThreadParams.cs" />
     <Compile Include="UserInput.cs">
       <SubType>Form</SubType>

@@ -5,8 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Wallhaven_Downloader_V2 {
-    public class SearchParameters {
+namespace Wallhaven_Downloader_V2
+{
+
+
+    /// <summary>
+    /// 搜索参数
+    /// </summary>
+    public class SearchParameters
+    {
         public string q;
         public string categories;
         public string purity;
@@ -21,7 +28,8 @@ namespace Wallhaven_Downloader_V2 {
         public int end_page;
         public string seed;
 
-        public SearchParameters() {
+        public SearchParameters()
+        {
             q = "";
             categories = "111";
             purity = "100";
@@ -37,11 +45,14 @@ namespace Wallhaven_Downloader_V2 {
             seed = "";
         }
 
-        public void ConvertFromJson(JObject input) {
+        public void ConvertFromJson(JObject input)
+        {
             var new_purity = new StringBuilder("000");
             var new_categories = new StringBuilder("000");
-            foreach (string purity in input.SelectToken("data.purity")) {
-                switch (purity) {
+            foreach (string purity in input.SelectToken("data.purity"))
+            {
+                switch (purity)
+                {
                     case "sfw":
                         new_purity[0] = '1';
                         break;
@@ -53,8 +64,10 @@ namespace Wallhaven_Downloader_V2 {
                         break;
                 }
             }
-            foreach (string category in input.SelectToken("data.categories")) {
-                switch (category) {
+            foreach (string category in input.SelectToken("data.categories"))
+            {
+                switch (category)
+                {
                     case "general":
                         new_categories[0] = '1';
                         break;
@@ -69,45 +82,59 @@ namespace Wallhaven_Downloader_V2 {
             purity = new_purity.ToString();
             categories = new_categories.ToString();
             topRange = input.SelectToken("data.toplist_range").ToString();
-            if (input.SelectToken("data.resolutions").ToList().Count > 0) {
-                if (input.SelectToken("data.resolutions").ToList()[0].ToString() != "") {
-                    foreach (string resolution in input.SelectToken("data.resolutions")) {
+            if (input.SelectToken("data.resolutions").ToList().Count > 0)
+            {
+                if (input.SelectToken("data.resolutions").ToList()[0].ToString() != "")
+                {
+                    foreach (string resolution in input.SelectToken("data.resolutions"))
+                    {
                         resolutions.Add(resolution);
                     }
                 }
             }
-            if (input.SelectToken("data.aspect_ratios").ToList().Count > 0) {
-                if (input.SelectToken("data.aspect_ratios").ToList()[0].ToString() != "") {
-                    foreach (string ratio in input.SelectToken("data.aspect_ratios")) {
+            if (input.SelectToken("data.aspect_ratios").ToList().Count > 0)
+            {
+                if (input.SelectToken("data.aspect_ratios").ToList()[0].ToString() != "")
+                {
+                    foreach (string ratio in input.SelectToken("data.aspect_ratios"))
+                    {
                         ratios.Add(ratio);
                     }
                 }
             }
         }
 
-        public  string ToURL() {
+        public string ToURL()
+        {
             string result = $"categories={categories}&purity={purity}&sorting={sorting}&order={order}&topRange={topRange}&page={page}";
-            if (q != "") {
+            if (q != "")
+            {
                 result += $"&q={q}";
             }
-            if (sorting == "toplist") {
+            if (sorting == "toplist")
+            {
                 result += $"&topRange={topRange}";
             }
-            if (atleast != "") {
+            if (atleast != "")
+            {
                 result += $"&atleast={atleast}";
             }
-            if (seed != "") {
+            if (seed != "")
+            {
                 result += $"&seed={seed}";
             }
-            if (resolutions.Count > 0) {
+            if (resolutions.Count > 0)
+            {
                 result += "&resolutions=";
                 result += String.Join(",", resolutions);
             }
-            if (ratios.Count > 0) {
+            if (ratios.Count > 0)
+            {
                 result += "&ratios=";
                 result += String.Join(",", ratios);
             }
-            if (colors.Count > 0) {
+            if (colors.Count > 0)
+            {
                 result += "&colors=";
                 result += String.Join(",", colors);
             }

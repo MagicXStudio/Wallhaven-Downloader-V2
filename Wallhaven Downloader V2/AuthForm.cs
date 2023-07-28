@@ -9,9 +9,9 @@ namespace Wallhaven_Downloader_V2 {
             this.MaximizeBox = false;
         }
 
-        private void OpenMainForm(string APIKey) {
+        private void OpenMainForm(string apiKey) {
             Main MainForm = new Main {
-                APIKey = APIKey
+                APIKey = apiKey
             };
             this.Hide();
             MainForm.Closed += (s, args) => this.Close();

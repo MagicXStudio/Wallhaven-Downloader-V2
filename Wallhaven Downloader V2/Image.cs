@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
-namespace Wallhaven_Downloader_V2 {
+namespace Wallhaven_Downloader_V2
+{
     public class Image {
         public string id;
         public string url;
