@@ -79,7 +79,6 @@
     <Compile Include="Image.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SetUnlockInterfaceCallback.cs" />
-    <Compile Include="ThreadParams.cs" />
     <Compile Include="UserInput.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -129,6 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app_icon.ico" />
+    <Content Include="JObject.txt" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">

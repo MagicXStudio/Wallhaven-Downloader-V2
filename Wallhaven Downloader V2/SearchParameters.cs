@@ -104,7 +104,7 @@ namespace Wallhaven_Downloader_V2
             }
         }
 
-        public string ToURL()
+        public string ToQueryString()
         {
             string result = $"categories={categories}&purity={purity}&sorting={sorting}&order={order}&topRange={topRange}&page={page}";
             if (q != "")

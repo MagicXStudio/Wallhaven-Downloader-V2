@@ -6,13 +6,12 @@ using System.Net;
 using System.IO;
 using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
-using System.Configuration;
 
 namespace Wallhaven_Downloader_V2
 {
     public partial class Main : Form
     {
-        public string APIKey { get;  set; }
+        public string APIKey { get; set; }
         public SearchParameters search_params = new SearchParameters();
         List<Collection> Items { get; set; }
 
@@ -33,19 +32,14 @@ namespace Wallhaven_Downloader_V2
         }
 
 
-        void DownloadImagesFromList(object data)
+        void DownloadImagesFromList()
         {
-            ThreadParams thread_params = (ThreadParams)data;
-            int thread_id = thread_params.thread_id;
-            List<Image> images = thread_params.images;
-            int total_to_download = thread_params.total_to_download;
             long total_size = 0;
-            Logpush($"[Thread-{thread_id}]Started, received {images.Count} images to process...");
             string save_path = Environment.CurrentDirectory;
             int downloaded = 0;
             using (WebClient client = new WebClient())
             {
-                foreach (var image in images)
+                foreach (var image in Images)
                 {
                     try
                     {
@@ -59,17 +53,16 @@ namespace Wallhaven_Downloader_V2
                         }
                         else
                         {
-                            Logpush($"[Thread-{thread_id}]Warn: 文件 {image.filename}已经存在!");
+                            Logpush($"文件 {image.filename}已经存在!");
                         }
                     }
                     catch (WebException e)
                     {
-                        Logpush($"[Thread-{thread_id}]Error while downloading {image.url}");
+                        Logpush($"下载出错 {image.url}");
                         Logpush(e.ToString());
                     }
                 }
             }
-            Logpush($"[Thread-{thread_id}]Done, {downloaded} images, total size: {total_size}");
         }
 
         delegate void SetLogpushCallback(string text);
@@ -86,47 +79,7 @@ namespace Wallhaven_Downloader_V2
             }
         }
 
-        delegate void ProgressBarSetterCallback(int maxvalue);
-        void SetMaxProgressBar(int maxvalue)
-        {
-            if (DownloadProgressBar.InvokeRequired)
-            {
-                ProgressBarSetterCallback d = new ProgressBarSetterCallback(SetMaxProgressBar);
-                Invoke(d, new object[] { maxvalue });
-            }
-            else
-            {
-                DownloadProgressBar.Maximum = maxvalue;
-            }
-        }
-
-        delegate void ProgressBarSetValueCallback(int value);
-        void ProgressBarSetValue(int value)
-        {
-            if (DownloadProgressBar.InvokeRequired)
-            {
-                ProgressBarSetValueCallback d = new ProgressBarSetValueCallback(ProgressBarSetValue);
-                Invoke(d, new object[] { value });
-            }
-            else
-            {
-                DownloadProgressBar.Value = value;
-            }
-        }
-
-        delegate void ProgressBarAddCallback();
-        void AddProgressBarStep()
-        {
-            if (DownloadProgressBar.InvokeRequired)
-            {
-                ProgressBarAddCallback d = new ProgressBarAddCallback(AddProgressBarStep);
-                Invoke(d, new object[] { });
-            }
-            else
-            {
-                DownloadProgressBar.PerformStep();
-            }
-        }
+    
         private void AdvancedSearchPage_KeyPressed(object sender, KeyPressEventArgs e)
         {
             if ((e.KeyChar <= 47 || e.KeyChar >= 58) && e.KeyChar != 8)
@@ -159,7 +112,7 @@ namespace Wallhaven_Downloader_V2
         {
             Logpush($"===[Application Settings]===\n[APIKey]={APIKey}\n[Threads]={Properties.Settings.Default.Threads}\n" +
                 $"[SavePath]={Properties.Settings.Default.SavePath}\n=======================");
-            ThreadsTextBox.Text = Properties.Settings.Default.Threads.ToString();
+            ThreadsTextBox.Text = $"{Environment.ProcessorCount}";
             if (APIKey != "")
             {
                 Logpush("API Key detected, please wait while search parameters being fetch...");
@@ -175,7 +128,6 @@ namespace Wallhaven_Downloader_V2
                 PurityNSFWCheckbox.Enabled = false;
             }
             UpdateShownSettings();
-
         }
 
         private void UpdateShownSettings()
@@ -730,36 +682,34 @@ namespace Wallhaven_Downloader_V2
 
         private void Download()
         {
-            if (started)
-            {
-                Logpush("[Stage 2/2: Download]");
-                Logpush("Prepearing download workers...");
-                int chunk_size = 1;
-                int threads_to_spawn = Environment.ProcessorCount;
-                List<Thread> Threads = new List<Thread>();
-                for (int i = 0; i < threads_to_spawn; i++)
-                {
-                    Threads.Add(new Thread(new ParameterizedThreadStart(DownloadImagesFromList)));
-                }
 
-                Logpush("Starting download workers...");
-                int ii = 0;
-                int amount_selector = chunk_size;
-                foreach (var thread in Threads)
+            Logpush("[Stage 2/2: Download]");
+            Logpush("Prepearing download workers...");
+            int chunk_size = 1;
+            int threads_to_spawn = Environment.ProcessorCount;
+            List<Thread> Threads = new List<Thread>();
+            for (int i = 0; i < threads_to_spawn; i++)
+            {
+                Threads.Add(new Thread(DownloadImagesFromList));
+            }
+
+            Logpush("Starting download workers...");
+            int ii = 0;
+            int amount_selector = chunk_size;
+            foreach (var thread in Threads)
+            {
+                if (ii + 1 == Threads.Count)
                 {
-                    if (ii + 1 == Threads.Count)
-                    {
-                        amount_selector = Images.Count - ii * chunk_size;
-                    }
-                    thread.Start(new ThreadParams(Images.GetRange(ii * chunk_size, amount_selector), ii, Images.Count));
-                    ii++;
+                    amount_selector = Images.Count - ii * chunk_size;
                 }
-                foreach (var thread in Threads)
+                thread.Start();
+                ii++;
+            }
+            foreach (var thread in Threads)
+            {
+                while (thread.IsAlive)
                 {
-                    while (thread.IsAlive)
-                    {
-                        Thread.Sleep(1000);
-                    }
+                    Thread.Sleep(1000);
                 }
             }
         }
@@ -786,7 +736,7 @@ namespace Wallhaven_Downloader_V2
 
             Logpush("This might take a while. (Images fetched at rate of 64/1.34s)");
             search_params.q = WebUtility.UrlEncode(ImageSourceSearchQuery.Text);
-            string request_url = $"https://wallhaven.cc/api/v1/search?{search_params}&apikey={APIKey}";
+            string request_url = $"https://wallhaven.cc/api/v1/search?{search_params.ToQueryString()}&apikey={APIKey}";
 
             JObject probe = HttpHelper.GetJsonFromURL(request_url);
             target_amount = Int32.Parse(probe.SelectToken("meta.total").ToString());
@@ -795,14 +745,13 @@ namespace Wallhaven_Downloader_V2
 
             // SetMaxProgressBar((1 + search_params.end_page - search_params.page) * (Int32.Parse(probe.SelectToken("meta.per_page").ToString())));
             JToken items = probe.SelectToken("data");
-
             foreach (JObject image in items)
             {
                 Image img = new Image(image["id"].ToString(), image["path"].ToString());
                 Images.Add(img);
             }
             search_params.page++;
-            request_url = $"https://wallhaven.cc/api/v1/search?{search_params}&apikey={APIKey}";
+            request_url = $"https://wallhaven.cc/api/v1/search?{search_params.ToQueryString()}&apikey={APIKey}";
             probe = HttpHelper.GetJsonFromURL(request_url);
         }
 
@@ -829,7 +778,6 @@ namespace Wallhaven_Downloader_V2
                 foreach (var image in response.SelectToken("data"))
                 {
                     Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
-                    ProgressBarSetValue(Images.Count);
                     if (Images.Count >= target_amount)
                     {
                         break;

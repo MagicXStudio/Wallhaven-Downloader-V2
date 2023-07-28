@@ -16,7 +16,6 @@ namespace Wallhaven_Downloader_V2
         public static JObject GetJsonFromURL(string url)
         {
             WebRequest request = WebRequest.Create(url);
-            request.Headers.Add("Accept", "application/json");
             request.Headers.Add("X-API-Key", "T401JgkfBJXdgMkteJfGVDYXjjmWoBo5");
             WebResponse response = request.GetResponse();
             JObject result = new JObject();
